@@ -869,19 +869,23 @@ $(call show_separator)
 # library sources
 $(OBJDIR)/libs/%.o: $(ARDUINO_LIB_PATH)/%.c
 	@$(MKDIR) $(dir $@)
-	$(CC) -MMD -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+	@echo "-> CC $<"
+	@$(CC) -MMD -c $(CPPFLAGS) $(CFLAGS) $< -o $@
 
 $(OBJDIR)/libs/%.o: $(ARDUINO_LIB_PATH)/%.cpp
 	@$(MKDIR) $(dir $@)
-	$(CC) -MMD -c $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+	@echo "-> CC $<"
+	@$(CC) -MMD -c $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
 $(OBJDIR)/libs/%.o: $(USER_LIB_PATH)/%.cpp
 	@$(MKDIR) $(dir $@)
-	$(CC) -MMD -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+	@echo "-> CC $<"
+	@$(CC) -MMD -c $(CPPFLAGS) $(CFLAGS) $< -o $@
 
 $(OBJDIR)/libs/%.o: $(USER_LIB_PATH)/%.c
 	@$(MKDIR) $(dir $@)
-	$(CC) -MMD -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+	@echo "-> CC $<"
+	@$(CC) -MMD -c $(CPPFLAGS) $(CFLAGS) $< -o $@
 
 ifdef COMMON_DEPS
     COMMON_DEPS := $(COMMON_DEPS) $(MAKEFILE_LIST)
@@ -892,42 +896,51 @@ endif
 # normal local sources
 $(OBJDIR)/%.o: %.c $(COMMON_DEPS) | $(OBJDIR)
 	@$(MKDIR) $(dir $@)
-	$(CC) -MMD -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+	@echo "-> CC $<"
+	@$(CC) -MMD -c $(CPPFLAGS) $(CFLAGS) $< -o $@
 
 $(OBJDIR)/%.o: %.cc $(COMMON_DEPS) | $(OBJDIR)
 	@$(MKDIR) $(dir $@)
-	$(CXX) -MMD -c $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+	@echo "-> C++ $<"
+	@$(CXX) -MMD -c $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
 $(OBJDIR)/%.o: %.cpp $(COMMON_DEPS) | $(OBJDIR)
 	@$(MKDIR) $(dir $@)
-	$(CXX) -MMD -c $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+	@echo "-> C++ $<"
+	@$(CXX) -MMD -c $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
 $(OBJDIR)/%.o: %.S $(COMMON_DEPS) | $(OBJDIR)
 	@$(MKDIR) $(dir $@)
-	$(CC) -MMD -c $(CPPFLAGS) $(ASFLAGS) $< -o $@
+	@echo "-> AS $<"
+	@$(CC) -MMD -c $(CPPFLAGS) $(ASFLAGS) $< -o $@
 
 $(OBJDIR)/%.o: %.s $(COMMON_DEPS) | $(OBJDIR)
 	@$(MKDIR) $(dir $@)
-	$(CC) -c $(CPPFLAGS) $(ASFLAGS) $< -o $@
+	@echo "-> AS $<"
+	@$(CC) -c $(CPPFLAGS) $(ASFLAGS) $< -o $@
 
 # the pde -> o file
 $(OBJDIR)/%.o: %.pde $(COMMON_DEPS) | $(OBJDIR)
 	@$(MKDIR) $(dir $@)
-	$(CXX) -x c++ -include $(ARDUINO_HEADER) -MMD -c $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+	@echo "-> PDE C++ $<"
+	@$(CXX) -x c++ -include $(ARDUINO_HEADER) -MMD -c $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
 # the ino -> o file
 $(OBJDIR)/%.o: %.ino $(COMMON_DEPS) | $(OBJDIR)
 	@$(MKDIR) $(dir $@)
-	$(CXX) -x c++ -include $(ARDUINO_HEADER) -MMD -c $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+	@echo "-> INO C++ $<"
+	@$(CXX) -x c++ -include $(ARDUINO_HEADER) -MMD -c $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
 # generated assembly
 $(OBJDIR)/%.s: %.pde $(COMMON_DEPS) | $(OBJDIR)
 	@$(MKDIR) $(dir $@)
-	$(CXX) -x c++ -include $(ARDUINO_HEADER) -MMD -S -fverbose-asm $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+	@echo "-> PDE C++ $<"
+	@$(CXX) -x c++ -include $(ARDUINO_HEADER) -MMD -S -fverbose-asm $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
 $(OBJDIR)/%.s: %.ino $(COMMON_DEPS) | $(OBJDIR)
 	@$(MKDIR) $(dir $@)
-	$(CXX) -x c++ -include $(ARDUINO_HEADER) -MMD -S -fverbose-asm $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+	@echo "-> INO C++ $<"
+	@$(CXX) -x c++ -include $(ARDUINO_HEADER) -MMD -S -fverbose-asm $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
 #$(OBJDIR)/%.lst: $(OBJDIR)/%.s
 #	$(AS) -$(MCU_FLAG_NAME)=$(MCU) -alhnd $< > $@
@@ -935,22 +948,26 @@ $(OBJDIR)/%.s: %.ino $(COMMON_DEPS) | $(OBJDIR)
 # core files
 $(OBJDIR)/%.o: $(ARDUINO_CORE_PATH)/%.c $(COMMON_DEPS) | $(OBJDIR)
 	@$(MKDIR) $(dir $@)
-	$(CC) -MMD -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+	@echo "-> CC $<"
+	@$(CC) -MMD -c $(CPPFLAGS) $(CFLAGS) $< -o $@
 
 $(OBJDIR)/%.o: $(ARDUINO_CORE_PATH)/%.cpp $(COMMON_DEPS) | $(OBJDIR)
 	@$(MKDIR) $(dir $@)
-	$(CXX) -MMD -c $(CPPFLAGS) $(CXXFLAGS) $< -o $@
+	@echo "-> C++ $<"
+	@$(CXX) -MMD -c $(CPPFLAGS) $(CXXFLAGS) $< -o $@
 
 $(OBJDIR)/%.o: $(ARDUINO_CORE_PATH)/%.S $(COMMON_DEPS) | $(OBJDIR)
 	@$(MKDIR) $(dir $@)
-	$(CC) -MMD -c $(CPPFLAGS) $(ASFLAGS) $< -o $@
+	@echo "-> CC $<"
+	@$(CC) -MMD -c $(CPPFLAGS) $(ASFLAGS) $< -o $@
 
 # various object conversions
 $(OBJDIR)/%.hex: $(OBJDIR)/%.elf $(COMMON_DEPS)
 	@$(MKDIR) $(dir $@)
 	$(OBJCOPY) -O ihex -R .eeprom $< $@
 	@$(ECHO) '\n'
-	$(call avr_size,$<,$@)
+	@echo "-> AVR-SIZE $<"
+	@$(call avr_size,$<,$@)
 ifneq ($(strip $(HEX_MAXIMUM_SIZE)),)
 	@if [ `$(SIZE) $@ | awk 'FNR == 2 {print $$2}'` -le $(HEX_MAXIMUM_SIZE) ]; then touch $@.sizeok; fi
 else
@@ -960,23 +977,26 @@ endif
 
 $(OBJDIR)/%.eep: $(OBJDIR)/%.elf $(COMMON_DEPS)
 	@$(MKDIR) $(dir $@)
-	-$(OBJCOPY) -j .eeprom --set-section-flags=.eeprom="alloc,load" \
+	@echo "-> AVR-OBJCOPY $<"
+	@-$(OBJCOPY) -j .eeprom --set-section-flags=.eeprom="alloc,load" \
 		--change-section-lma .eeprom=0 -O ihex $< $@
 
 $(OBJDIR)/%.lss: $(OBJDIR)/%.elf $(COMMON_DEPS)
 	@$(MKDIR) $(dir $@)
-	$(OBJDUMP) -h --source --demangle --wide $< > $@
+	@echo "-> AVR-OBJDUMP $<"
+	@$(OBJDUMP) -h --source --demangle --wide $< > $@
 
 $(OBJDIR)/%.sym: $(OBJDIR)/%.elf $(COMMON_DEPS)
 	@$(MKDIR) $(dir $@)
-	$(NM) --size-sort --demangle --reverse-sort --line-numbers $< > $@
+	@echo "-> AVR-NM $<"
+	@$(NM) --size-sort --demangle --reverse-sort --line-numbers $< > $@
 
 ########################################################################
 # Avrdude
 
 # If avrdude is installed separately, it can find its own config file
 ifndef AVRDUDE
-    AVRDUDE          = $(AVR_TOOLS_PATH)/avrdude
+	AVRDUDE          = $(AVR_TOOLS_PATH)/avrdude
 endif
 
 # Default avrdude options
@@ -1079,13 +1099,16 @@ all: 		$(TARGET_EEP) $(TARGET_HEX)
 # list) to prevent remaking the target when any file in the directory
 # changes.
 $(OBJDIR):
-		$(MKDIR) $(OBJDIR)
+		@echo "-> MKDIR $(OBJDIR)"
+		@$(MKDIR) $(OBJDIR)
 
 $(TARGET_ELF): 	$(LOCAL_OBJS) $(CORE_LIB) $(OTHER_OBJS)
-		$(CC) $(LDFLAGS) -o $@ $(LOCAL_OBJS) $(CORE_LIB) $(OTHER_OBJS) -lc -lm
+		@echo "-> Linking output binary"
+		@$(CC) $(LDFLAGS) -o $@ $(LOCAL_OBJS) $(CORE_LIB) $(OTHER_OBJS) -lc -lm
 
 $(CORE_LIB):	$(CORE_OBJS) $(LIB_OBJS) $(USER_LIB_OBJS)
-		$(AR) rcs $@ $(CORE_OBJS) $(LIB_OBJS) $(USER_LIB_OBJS)
+		@echo "-> Generating Core Library"
+		@$(AR) rcs $@ $(CORE_OBJS) $(LIB_OBJS) $(USER_LIB_OBJS)
 
 error_on_caterina:
 		$(ERROR_ON_CATERINA)
@@ -1093,32 +1116,35 @@ error_on_caterina:
 # Use submake so we can guarantee the reset happens
 # before the upload, even with make -j
 upload:		$(TARGET_HEX) verify_size
-		$(MAKE) reset
-		$(MAKE) do_upload
+		@$(MAKE) reset
+		@$(MAKE) do_upload
 
 raw_upload:	$(TARGET_HEX) verify_size
-		$(MAKE) error_on_caterina
-		$(MAKE) do_upload
+		@$(MAKE) error_on_caterina
+		@$(MAKE) do_upload
 
 do_upload:
-		$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_ARD_OPTS) \
+		@echo "-> Uploading binary"
+		@$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_ARD_OPTS) \
 			$(AVRDUDE_UPLOAD_HEX)
 
 do_eeprom:	$(TARGET_EEP) $(TARGET_HEX)
-		$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_ARD_OPTS) \
+		@echo "-> Uploading EEPROM"
+		@$(AVRDUDE) $(AVRDUDE_COM_OPTS) $(AVRDUDE_ARD_OPTS) \
 			$(AVRDUDE_UPLOAD_EEP)
 
 eeprom:		$(TARGET_HEX) verify_size
-		$(MAKE) reset
-		$(MAKE) do_eeprom
+		@$(MAKE) reset
+		@$(MAKE) do_eeprom
 
 raw_eeprom:	$(TARGET_HEX) verify_size
-		$(MAKE) error_on_caterina
-		$(MAKE) do_eeprom
+		@$(MAKE) error_on_caterina
+		@$(MAKE) do_eeprom
 
 reset:
 		$(call arduino_output,Resetting Arduino...)
-		$(RESET_CMD)
+		@echo "-> Resetting board"
+		@$(RESET_CMD)
 
 # stty on MacOS likes -F, but on Debian it likes -f redirecting
 # stdin/out appears to work but generates a spurious error on MacOS at
@@ -1155,16 +1181,19 @@ ifneq ($(strip $(AVRDUDE_ISP_FUSES_POST)),)
 endif
 
 clean:
-		$(REMOVE) $(LOCAL_OBJS) $(CORE_OBJS) $(LIB_OBJS) $(CORE_LIB) $(TARGETS) $(DEPS) $(USER_LIB_OBJS) ${OBJDIR}
+		@echo "-> Cleaning target"
+		@$(REMOVE) $(LOCAL_OBJS) $(CORE_OBJS) $(LIB_OBJS) $(CORE_LIB) $(TARGETS) $(DEPS) $(USER_LIB_OBJS) ${OBJDIR}
 
 size:	$(TARGET_HEX)
-		$(call avr_size,$(TARGET_ELF),$(TARGET_HEX))
+		@echo "-> AVR-SIZE $<"
+		@$(call avr_size,$(TARGET_ELF),$(TARGET_HEX))
 
 show_boards:
 		@cat $(BOARDS_TXT) | grep -E "^[[:alnum:]]" | cut -d . -f 1 | uniq
 
 monitor:
-		$(MONITOR_CMD) $(call get_monitor_port) $(MONITOR_BAUDRATE)
+		@echo "-> Launching Serial Monitor"
+		@$(MONITOR_CMD) $(call get_monitor_port) $(MONITOR_BAUDRATE)
 
 disasm: $(OBJDIR)/$(TARGET).lss
 		@$(ECHO) "The compiled ELF file has been disassembled to $(OBJDIR)/$(TARGET).lss"
