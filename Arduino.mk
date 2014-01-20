@@ -374,6 +374,10 @@ ifndef AVR_TOOLS_DIR
 
         else
 
+        	ifndef AVRDUDE
+                AVRDUDE = $(AVR_TOOLS_DIR)/bin/avrdude
+            endif
+
             ifndef AVRDUDE_CONF
                 AVRDUDE_CONF  = $(AVR_TOOLS_DIR)/etc/avrdude.conf
             endif
