@@ -352,56 +352,103 @@ ifndef NM_NAME
 NM_NAME      = avr-nm
 endif
 
-ifndef AVR_TOOLS_DIR
+ifndef AVR_BINUTILS_DIR
+AVR_TOOLS_DIR_NEEDED = true
+endif
+ifndef AVR_GCC_DIR
+AVR_TOOLS_DIR_NEEDED = true
+endif
+ifndef AVRDUDE
+AVR_TOOLS_DIR_NEEDED = true
+endif
 
-    BUNDLED_AVR_TOOLS_DIR := $(call dir_if_exists,$(ARDUINO_DIR)/hardware/tools/avr)
-    ifdef BUNDLED_AVR_TOOLS_DIR
-        AVR_TOOLS_DIR     = $(BUNDLED_AVR_TOOLS_DIR)
-        $(call show_config_variable,AVR_TOOLS_DIR,[BUNDLED],(in Arduino distribution))
+ifdef AVR_TOOLS_DIR_NEEDED
+    ifndef AVR_TOOLS_DIR
 
-        # In Linux distribution of Arduino, the path to avrdude and avrdude.conf are different
-        # More details at https://github.com/sudar/Arduino-Makefile/issues/48 and
-        # https://groups.google.com/a/arduino.cc/d/msg/developers/D_m97jGr8Xs/uQTt28KO_8oJ
-        ifeq ($(CURRENT_OS),LINUX)
+        BUNDLED_AVR_TOOLS_DIR := $(call dir_if_exists,$(ARDUINO_DIR)/hardware/tools/avr)
+        ifdef BUNDLED_AVR_TOOLS_DIR
+            AVR_TOOLS_DIR     = $(BUNDLED_AVR_TOOLS_DIR)
+            $(call show_config_variable,AVR_TOOLS_DIR,[BUNDLED],(in Arduino distribution))
 
-            ifndef AVRDUDE
-                AVRDUDE = $(AVR_TOOLS_DIR)/../avrdude
-            endif
+            # In Linux distribution of Arduino, the path to avrdude and avrdude.conf are different
+            # More details at https://github.com/sudar/Arduino-Makefile/issues/48 and
+            # https://groups.google.com/a/arduino.cc/d/msg/developers/D_m97jGr8Xs/uQTt28KO_8oJ
+            ifeq ($(CURRENT_OS),LINUX)
 
-            ifndef AVRDUDE_CONF
-                AVRDUDE_CONF = $(AVR_TOOLS_DIR)/../avrdude.conf
+                ifndef AVRDUDE
+                    AVRDUDE = $(AVR_TOOLS_DIR)/../avrdude
+                    $(call show_config_variable,AVRDUDE,[AUTODETECTED])
+                endif
+
+                ifndef AVRDUDE_CONF
+                    AVRDUDE_CONF = $(AVR_TOOLS_DIR)/../avrdude.conf
+                    $(call show_config_variable,AVRDUDE_CONF,[AUTODETECTED])
+                endif
+
+            else
+
+            	ifndef AVRDUDE
+                    AVRDUDE = $(AVR_TOOLS_DIR)/bin/avrdude
+                    $(call show_config_variable,AVRDUDE,[AUTODETECTED])
+                endif
+
+                ifndef AVRDUDE_CONF
+                    AVRDUDE_CONF  = $(AVR_TOOLS_DIR)/etc/avrdude.conf
+                    $(call show_config_variable,AVRDUDE_CONF,[AUTODETECTED])
+                endif
+
             endif
 
         else
 
-        	ifndef AVRDUDE
-                AVRDUDE = $(AVR_TOOLS_DIR)/bin/avrdude
-            endif
+            SYSTEMPATH_AVR_TOOLS_DIR := $(call dir_if_exists,$(abspath $(dir $(shell which $(CC_NAME)))/..))
+            ifdef SYSTEMPATH_AVR_TOOLS_DIR
+                AVR_TOOLS_DIR = $(SYSTEMPATH_AVR_TOOLS_DIR)
+                $(call show_config_variable,AVR_TOOLS_DIR,[AUTODETECTED],(found in $$PATH))
+            else
+                echo $(error No AVR tools directory found)
+            endif # SYSTEMPATH_AVR_TOOLS_DIR
 
-            ifndef AVRDUDE_CONF
-                AVRDUDE_CONF  = $(AVR_TOOLS_DIR)/etc/avrdude.conf
-            endif
-
-        endif
+        endif # BUNDLED_AVR_TOOLS_DIR
 
     else
+        $(call show_config_variable,AVR_TOOLS_DIR,[USER])
 
-        SYSTEMPATH_AVR_TOOLS_DIR := $(call dir_if_exists,$(abspath $(dir $(shell which $(CC_NAME)))/..))
-        ifdef SYSTEMPATH_AVR_TOOLS_DIR
-            AVR_TOOLS_DIR = $(SYSTEMPATH_AVR_TOOLS_DIR)
-            $(call show_config_variable,AVR_TOOLS_DIR,[AUTODETECTED],(found in $$PATH))
+        # provide AVRDUDE path
+        # we expect it can find its own config file
+        ifndef AVRDUDE
+            AVRDUDE = $(AVR_TOOLS_DIR)/bin/avrdude
+            $(call show_config_variable,AVRDUDE,[AUTODETECTED])
         else
-            echo $(error No AVR tools directory found)
-        endif # SYSTEMPATH_AVR_TOOLS_DIR
+            $(call show_config_variable,AVRDUDE,[USER])
+        endif
+    endif #ndef AVR_TOOLS_DIR
 
-    endif # BUNDLED_AVR_TOOLS_DIR
-
+    # define the Binutils and GCC dirs as the same as AVR_TOOLS_DIR if not
+    # user-specified.
+    ifndef AVR_BINUTILS_DIR
+        AVR_BINUTILS_DIR = $(AVR_TOOLS_DIR)
+        $(call show_config_variable,AVR_BINUTILS_DIR,[AUTODETECTED])
+    else
+        $(call show_config_variable,AVR_BINUTILS_DIR,[USER])
+    endif
+    ifndef AVR_GCC_DIR
+        AVR_GCC_DIR = $(AVR_TOOLS_DIR)
+        $(call show_config_variable,AVR_GCC_DIR,[AUTODETECTED])
+    else
+        $(call show_config_variable,AVR_GCC_DIR,[USER])
+    endif
 else
-    $(call show_config_variable,AVR_TOOLS_DIR,[USER])
-endif #ndef AVR_TOOLS_DIR
+    $(call show_config_variable,AVR_BINUTILS_DIR,[USER])
+    $(call show_config_variable,AVR_GCC_DIR,[USER])
+    $(call show_config_variable,AVRDUDE,[USER])
+endif #def AVR_TOOLS_DIR_NEEDED
 
-ifndef AVR_TOOLS_PATH
-    AVR_TOOLS_PATH    = $(AVR_TOOLS_DIR)/bin
+ifndef AVR_BINUTILS_PATH
+    AVR_BINUTILS_PATH    = $(AVR_BINUTILS_DIR)/bin
+endif
+ifndef AVR_GCC_PATH
+    AVR_GCC_PATH    = $(AVR_GCC_DIR)/bin
 endif
 
 ARDUINO_LIB_PATH  = $(ARDUINO_DIR)/libraries
@@ -612,7 +659,7 @@ LOCAL_OBJ_FILES = $(LOCAL_C_SRCS:.c=.o)   $(LOCAL_CPP_SRCS:.cpp=.o) \
 LOCAL_OBJS      = $(patsubst %,$(OBJDIR)/%,$(LOCAL_OBJ_FILES))
 
 ifeq ($(words $(LOCAL_SRCS)), 0)
-    $(error Atleast one source file (*.ino, *.pde, *.cpp, *c, *cc, *.S) is needed)
+    $(error At least one source file (*.ino, *.pde, *.cpp, *c, *cc, *.S) is needed)
 endif
 
 ifeq ($(strip $(NO_CORE)),)
@@ -714,14 +761,14 @@ TARGETS    = $(OBJDIR)/$(TARGET).*
 CORE_LIB   = $(OBJDIR)/libcore.a
 
 # Names of executables
-CC      = $(AVR_TOOLS_PATH)/$(CC_NAME)
-CXX     = $(AVR_TOOLS_PATH)/$(CXX_NAME)
-AS      = $(AVR_TOOLS_PATH)/$(AS_NAME)
-OBJCOPY = $(AVR_TOOLS_PATH)/$(OBJCOPY_NAME)
-OBJDUMP = $(AVR_TOOLS_PATH)/$(OBJDUMP_NAME)
-AR      = $(AVR_TOOLS_PATH)/$(AR_NAME)
-SIZE    = $(AVR_TOOLS_PATH)/$(SIZE_NAME)
-NM      = $(AVR_TOOLS_PATH)/$(NM_NAME)
+CC      = $(AVR_GCC_PATH)/$(CC_NAME)
+CXX     = $(AVR_GCC_PATH)/$(CXX_NAME)
+AS      = $(AVR_BINUTILS_PATH)/$(AS_NAME)
+OBJCOPY = $(AVR_BINUTILS_PATH)/$(OBJCOPY_NAME)
+OBJDUMP = $(AVR_BINUTILS_PATH)/$(OBJDUMP_NAME)
+AR      = $(AVR_BINUTILS_PATH)/$(AR_NAME)
+SIZE    = $(AVR_BINUTILS_PATH)/$(SIZE_NAME)
+NM      = $(AVR_BINUTILS_PATH)/$(NM_NAME)
 REMOVE  = rm -rf
 MV      = mv -f
 CAT     = cat
@@ -994,11 +1041,6 @@ $(OBJDIR)/%.sym: $(OBJDIR)/%.elf $(COMMON_DEPS)
 
 ########################################################################
 # Avrdude
-
-# If avrdude is installed separately, it can find its own config file
-ifndef AVRDUDE
-	AVRDUDE          = $(AVR_TOOLS_PATH)/avrdude
-endif
 
 # Default avrdude options
 # -V Do not verify
